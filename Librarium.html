@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Librarium</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',sans-serif;background:#0f0f0f;color:#f0f0f0;min-height:100vh;touch-action:manipulation;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#1a1a1a;}::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+.fade{animation:fadeUp 0.3s ease;}
+.spinner{width:32px;height:32px;border:2px solid #333;border-top:2px solid #f0f0f0;border-radius:50%;animation:spin 0.8s linear infinite;}
+
+/* Layout */
+#app{max-width:480px;margin:0 auto;padding:20px 16px 40px;}
+.header{margin-bottom:24px;}
+.header h1{font-size:22px;font-weight:600;letter-spacing:-0.5px;margin-bottom:2px;}
+.header p{font-size:12px;color:#555;letter-spacing:0.08em;text-transform:uppercase;}
+
+/* Nav */
+.nav{display:flex;gap:2px;background:#1a1a1a;border-radius:12px;padding:3px;margin-bottom:24px;}
+.nav-item{flex:1;padding:9px 6px;font-size:13px;font-family:'Inter',sans-serif;text-align:center;border-radius:10px;cursor:pointer;color:#666;border:none;background:transparent;transition:all 0.15s;white-space:nowrap;}
+.nav-item.active{background:#1f1f1f;color:#f0f0f0;font-weight:500;border:0.5px solid #2a2a2a;}
+
+/* Cards */
+.card{background:#141414;border:0.5px solid #242424;border-radius:14px;padding:16px;}
+.card-sm{background:#141414;border:0.5px solid #242424;border-radius:12px;padding:14px;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all 0.15s;font-weight:500;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:#f0f0f0;color:#0f0f0f;}
+.btn-primary:active{background:#d8d8d8;}
+.btn-ghost{background:#1a1a1a;color:#f0f0f0;border:0.5px solid #2a2a2a;}
+.btn-ghost:active{background:#242424;}
+.btn-danger{background:#2a1414;color:#ff6b6b;border:0.5px solid #3a1a1a;}
+.btn-full{width:100%;justify-content:center;}
+.btn:disabled,.btn.disabled{opacity:0.35;cursor:default;transform:none!important;}
+
+/* Inputs */
+input,textarea,select{width:100%;background:#141414;border:0.5px solid #2a2a2a;border-radius:10px;padding:11px 14px;font-size:14px;font-family:'Inter',sans-serif;color:#f0f0f0;outline:none;transition:border-color 0.15s;}
+input:focus,textarea:focus,select:focus{border-color:#444;}
+select option{background:#141414;color:#f0f0f0;}
+textarea{resize:none;line-height:1.6;}
+
+/* Tags & pills */
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;background:#1f1f1f;border:0.5px solid #2a2a2a;color:#888;}
+.pill{display:inline-flex;align-items:center;padding:8px 14px;border-radius:10px;font-size:13px;cursor:pointer;background:#141414;border:0.5px solid #2a2a2a;color:#bbb;transition:all 0.12s;line-height:1.3;}
+.pill:active,.pill.sel{background:#1f1f1f;border-color:#444;color:#f0f0f0;}
+
+/* Mood grid */
+.mood-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mood-btn{background:#141414;border:0.5px solid #242424;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.12s;}
+.mood-btn:active{background:#1f1f1f;border-color:#333;}
+.mood-emoji{font-size:20px;}
+.mood-label{font-size:14px;font-weight:400;color:#f0f0f0;}
+
+/* Steps */
+.step-bar{display:flex;gap:4px;margin-bottom:20px;}
+.step-dot{flex:1;height:2px;border-radius:1px;background:#222;transition:background 0.3s;}
+.step-dot.done{background:#f0f0f0;}
+.step-label{font-size:11px;color:#555;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.step-title{font-size:17px;font-weight:500;margin-bottom:16px;}
+
+/* Progress */
+.prog-wrap{height:3px;background:#222;border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.prog-fill{height:100%;background:#f0f0f0;border-radius:2px;transition:width 0.6s ease;}
+
+/* Book reader */
+.book-wrap{background:#141414;border:0.5px solid #242424;border-radius:14px;overflow:hidden;}
+.book-toolbar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:0.5px solid #242424;background:#111;flex-wrap:wrap;}
+.book-page{padding:20px;max-height:58vh;overflow-y:auto;font-family:'Playfair Display',serif;}
+.book-title{font-size:22px;font-weight:600;line-height:1.2;margin-bottom:12px;color:#f0f0f0;}
+.book-syn{font-size:15px;font-style:italic;color:#888;line-height:1.7;margin-bottom:20px;}
+.book-ch{font-size:17px;font-weight:600;margin:24px 0 12px;color:#f0f0f0;}
+.book-p{font-size:16px;line-height:1.9;color:#ccc;margin-bottom:2px;}
+.book-sp{height:0.5em;}
+.ch-div{text-align:center;color:#444;letter-spacing:0.3em;font-size:13px;margin:28px 0;}
+.rd-btn{background:#1a1a1a;border:0.5px solid #2a2a2a;color:#ccc;border-radius:8px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;}
+.rd-btn.active{border-color:#555;color:#f0f0f0;font-weight:500;}
+
+/* Misc */
+.err-box{background:#1a0a0a;border:0.5px solid #3a1a1a;border-radius:10px;padding:12px 14px;color:#ff6b6b;font-size:13px;margin-bottom:12px;line-height:1.5;}
+.hint-box{background:#141414;border:0.5px solid #222;border-radius:10px;padding:12px 14px;font-size:13px;color:#666;line-height:1.6;margin-bottom:14px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.author-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding-bottom:4px;}
+.fb-row{display:flex;gap:6px;}
+.fb-btn{padding:4px 10px;border-radius:99px;font-size:13px;cursor:pointer;background:#1a1a1a;border:0.5px solid #2a2a2a;color:#888;transition:all 0.12s;}
+.fb-btn.on{border-color:#555;color:#f0f0f0;background:#1f1f1f;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>Librarium</h1>
+    <p>Descubre · Lee · Crea</p>
+  </div>
+  <div class="nav">
+    <div class="nav-item active" onclick="setTab('discover',this)">Descubrir</div>
+    <div class="nav-item" onclick="setTab('create',this)">Crear</div>
+    <div class="nav-item" id="lib-tab" onclick="setTab('library',this)">Biblioteca</div>
+  </div>
+  <div id="tab-discover"></div>
+  <div id="tab-create" style="display:none;"></div>
+  <div id="tab-library" style="display:none;"></div>
+  <div id="tab-reader" style="display:none;"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const MOODS=[{l:"Aventura",e:"⚔️"},{l:"Romance",e:"🌹"},{l:"Misterio",e:"🔍"},{l:"Inspiración",e:"✨"},{l:"Terror",e:"👻"},{l:"Humor",e:"😂"},{l:"Filosofía",e:"🧠"},{l:"Fantasía",e:"🐉"}];
+const GENRES=["Fantasía","Ciencia ficción","Romance","Thriller","Terror","Historia","Aventura","Misterio","Distópica","Realismo mágico","Drama psicológico","Épica"];
+const NARRATIVES=["Primera persona","Tercera persona omnisciente","Tercera persona limitada","Segunda persona","Múltiples perspectivas","No lineal"];
+const TONES=["Oscuro y melancólico","Épico y grandioso","Íntimo y emotivo","Humorístico y ligero","Misterioso y suspensivo","Poético y lírico","Crudo y realista"];
+const AUTHORS=["Gabriel García Márquez","Jorge Luis Borges","Isabel Allende","Julio Cortázar","Franz Kafka","Virginia Woolf","Haruki Murakami","Cormac McCarthy","Ursula K. Le Guin","Fyodor Dostoyevsky","Leo Tolstoy","Ernest Hemingway","Toni Morrison","Milan Kundera","Patrick Rothfuss","George R.R. Martin","Stephen King","Donna Tartt","Elena Ferrante","Chimamanda Ngozi Adichie","Olga Tokarczuk","Roberto Bolaño","Mario Vargas Llosa","Carlos Ruiz Zafón"];
+const PHASES=["Preparando el lienzo narrativo...","Construyendo el mundo...","Dando vida a los personajes...","Tejiendo la trama...","Desarrollando capítulos...","Añadiendo tensión y atmósfera...","Puliendo el estilo literario...","Revisando la prosa...","Últimos retoques..."];
+const STEPS=[
+  {key:"genre",   label:"Género literario",              type:"select",  opts:GENRES},
+  {key:"narrative",label:"Voz narrativa",                type:"select",  opts:NARRATIVES},
+  {key:"tone",    label:"Tono de la historia",           type:"select",  opts:TONES},
+  {key:"author",  label:"Estilo de autor (opcional)",    type:"author"},
+  {key:"refs",    label:"Referencias inspiradoras",      type:"text",    ph:"Ej: El señor de los anillos, Blade Runner..."},
+  {key:"extra",   label:"Detalles de tu historia",       type:"extra",   ph:"Protagonista, mundo, conflicto, personajes, escena que imaginas, final deseado..."},
+  {key:"chapters",label:"¿Cuántos capítulos generar?",   type:"chapters"},
+];
+
+// ── GLOBAL STATE ──────────────────────────────────────────────────────────────
+// All mutable — no closures, no React, no stale references
+const G={
+  tab:"discover",
+  // discover
+  dStep:0, dMood:"", dFavs:"", dFeedback:{}, dRecs:[], dLoading:false, dErr:"",
+  // creator — prefs is a plain object mutated directly
+  prefs:{}, cStep:0, cView:"form", cChapters:3, cAuthorQ:"",
+  cProgress:0, cProgressTimer:null, cChaps:[], cMoreLoading:false, cSaved:false, cErr:"",
+  // reader
+  rBook:null, rFs:16, rTheme:"dark",
+  // library
+  library:[],
+};
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function api(messages, system, max_tokens){
+  const body={model:"claude-sonnet-4-20250514", max_tokens:max_tokens||8000, messages};
+  if(system) body.system=system;
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify(body)
+  });
+  const d=await res.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content?.[0]?.text||"";
+}
+function parseJSON(txt){
+  try{return JSON.parse(txt.trim());}catch{}
+  const b=txt.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if(b){try{return JSON.parse(b[1].trim());}catch{}}
+  const a=txt.match(/\[[\s\S]*\]/);
+  if(a){try{return JSON.parse(a[0]);}catch{}}
+  return null;
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function setTab(name, el){
+  G.tab=name;
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  el.classList.add("active");
+  ["discover","create","library","reader"].forEach(t=>{
+    document.getElementById("tab-"+t).style.display=t===name?"block":"none";
+  });
+  if(name==="discover") renderDiscover();
+  if(name==="create")   renderCreator();
+  if(name==="library")  renderLibrary();
+  updateLibTab();
+}
+function updateLibTab(){
+  const n=G.library.length;
+  document.getElementById("lib-tab").textContent=n?"Biblioteca ("+n+")":"Biblioteca";
+}
+
+// ── DISCOVER ──────────────────────────────────────────────────────────────────
+function renderDiscover(){
+  const c=document.getElementById("tab-discover");
+  c.innerHTML="";
+  const d=document.createElement("div");
+  d.className="fade";
+
+  if(G.dStep===0){
+    d.innerHTML=`
+      <p style="font-size:16px;font-weight:500;margin-bottom:4px;">¿Cómo te sientes hoy?</p>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">Tu estado de ánimo guiará las recomendaciones</p>
+      <div class="mood-grid">
+        ${MOODS.map(m=>`<div class="mood-btn" onclick="pickMood('${m.l}')">
+          <span class="mood-emoji">${m.e}</span>
+          <span class="mood-label">${m.l}</span>
+        </div>`).join("")}
+      </div>`;
+  }
+  else if(G.dStep===1){
+    d.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <button class="btn btn-ghost" style="padding:8px 12px;" onclick="G.dStep=0;renderDiscover()">←</button>
+        <span class="tag">${G.dMood}</span>
+      </div>
+      <p style="font-size:15px;font-weight:500;margin-bottom:4px;">¿Tienes favoritos?</p>
+      <p style="font-size:13px;color:#666;margin-bottom:12px;">Libros o autores que te gustan (opcional)</p>
+      <textarea rows="3" placeholder="Ej: García Márquez, 1984, El nombre del viento..." onchange="G.dFavs=this.value" oninput="G.dFavs=this.value">${G.dFavs}</textarea>
+      <button class="btn btn-primary btn-full" style="margin-top:12px;" onclick="doGetRecs()">Descubrir 12 libros →</button>`;
+  }
+  else{
+    let html="";
+    if(G.dErr) html+=`<div class="err-box">${G.dErr} <span style="text-decoration:underline;cursor:pointer;" onclick="doGetRecs()">Reintentar</span></div>`;
+    if(G.dLoading) html+=`<div style="display:flex;align-items:center;gap:12px;padding:32px 0;"><div class="spinner"></div><p style="font-size:14px;color:#666;">Buscando libros...</p></div>`;
+    else if(G.dRecs.length){
+      const hasFB=Object.keys(G.dFeedback).length>0;
+      html+=`
+        <div class="info-row">
+          <div>
+            <p style="font-size:15px;font-weight:500;">Libros para hoy</p>
+            <p style="font-size:12px;color:#555;">${G.dMood} · ${G.dRecs.length} títulos</p>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost" style="font-size:13px;padding:8px 12px;opacity:${hasFB?1:0.3};" onclick="${hasFB?'doRefine()':'void(0)'}" ${hasFB?'':'disabled'}>Refinar</button>
+            <button class="btn btn-ghost" style="padding:8px 12px;" onclick="G.dStep=0;G.dRecs=[];G.dFeedback={};G.dMood='';G.dErr='';renderDiscover()">↺</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${G.dRecs.map((b,i)=>`
+            <div class="card-sm">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span class="tag">${b.genero||""}</span>
+                <span style="font-size:11px;color:#555;">${b.paginas||""} pág.</span>
+              </div>
+              <p style="font-size:15px;font-weight:500;margin-bottom:2px;">${b.titulo||""}</p>
+              <p style="font-size:12px;color:#555;margin-bottom:8px;">${b.autor||""} · ${b.anio||""}</p>
+              <p style="font-size:13px;color:#aaa;line-height:1.6;margin-bottom:6px;">${b.descripcion||""}</p>
+              <p style="font-size:13px;color:#888;font-style:italic;border-left:2px solid #2a2a2a;padding-left:10px;margin-bottom:10px;">${b.porque||""}</p>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div class="fb-row">
+                  ${["👍","👎","🔖"].map(e=>`<span class="fb-btn${G.dFeedback[b.titulo]===e?' on':''}" onclick="setFB(${i},'${e}')">${e}</span>`).join("")}
+                </div>
+                ${b.link?`<a href="${b.link}" target="_blank" style="margin-left:auto;font-size:12px;color:#555;text-decoration:none;">Ver →</a>`:""}
+              </div>
+            </div>`).join("")}
+        </div>`;
+    }
+    d.innerHTML=html;
+  }
+  c.appendChild(d);
+}
+
+function pickMood(m){ G.dMood=m; G.dStep=1; renderDiscover(); }
+function setFB(i,e){ G.dFeedback[G.dRecs[i].titulo]=e; renderDiscover(); }
+
+async function doGetRecs(){
+  G.dLoading=true; G.dStep=2; G.dErr=""; renderDiscover();
+  try{
+    const txt=await api([{role:"user",content:`Recomienda exactamente 12 libros para estado de ánimo "${G.dMood}"${G.dFavs?`, favoritos: ${G.dFavs}`:""}.
+SOLO este array JSON sin texto antes ni después:
+[{"titulo":"","autor":"","genero":"","descripcion":"2 oraciones","porque":"por qué le encantará","paginas":"número","anio":"año","link":"https://www.goodreads.com/search?q=TITULO+AUTOR"}]`}],
+    "Experto bibliotecario. SOLO JSON, sin texto extra ni backticks.",3500);
+    const p=parseJSON(txt);
+    if(!p||!p.length) throw new Error("No se cargaron recomendaciones. Intenta de nuevo.");
+    G.dRecs=p; G.dFeedback={};
+  }catch(e){ G.dErr=e.message; }
+  G.dLoading=false; renderDiscover();
+}
+
+async function doRefine(){
+  G.dLoading=true; G.dErr=""; renderDiscover();
+  const liked=Object.entries(G.dFeedback).filter(([,v])=>v==="👍").map(([k])=>k);
+  const disliked=Object.entries(G.dFeedback).filter(([,v])=>v==="👎").map(([k])=>k);
+  try{
+    const txt=await api([{role:"user",content:`12 libros NUEVOS, mood "${G.dMood}". Gustaron: ${liked.join(",")||"ninguno"}. No gustaron: ${disliked.join(",")||"ninguno"}.
+SOLO JSON: [{"titulo":"","autor":"","genero":"","descripcion":"","porque":"","paginas":"","anio":"","link":""}]`}],
+    "Experto bibliotecario. SOLO JSON español.",3500);
+    const p=parseJSON(txt);
+    if(!p||!p.length) throw new Error("Error al refinar. Intenta de nuevo.");
+    G.dRecs=p; G.dFeedback={};
+  }catch(e){ G.dErr=e.message; }
+  G.dLoading=false; renderDiscover();
+}
+
+// ── CREATOR ───────────────────────────────────────────────────────────────────
+function renderCreator(){
+  const c=document.getElementById("tab-create");
+  c.innerHTML="";
+  const d=document.createElement("div");
+  d.className="fade";
+
+  if(G.cView==="generating"){
+    const phIdx=Math.min(Math.floor(G.cProgress/12),PHASES.length-1);
+    d.innerHTML=`
+      <div style="text-align:center;padding:32px 0 24px;">
+        <div style="font-size:40px;margin-bottom:14px;animation:pulse 1.5s ease-in-out infinite;">📖</div>
+        <p style="font-size:17px;font-weight:500;margin-bottom:6px;">Creando tu historia</p>
+        ${G.prefs.author?`<p style="font-size:13px;color:#888;margin-bottom:4px;">Estilo de ${G.prefs.author}</p>`:""}
+        <p style="font-size:13px;color:#555;">Generando ${G.cChapters} capítulo${G.cChapters>1?"s":""} · No cierres la app</p>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <p style="font-size:13px;color:#888;font-style:italic;" id="phase-txt">${PHASES[phIdx]}</p>
+        <p style="font-size:14px;font-weight:500;" id="pct-txt">${G.cProgress}%</p>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:${G.cProgress}%;"></div></div>
+      <div class="hint-box" style="margin-top:16px;text-align:center;">Esto puede tomar entre 30 segundos y varios minutos según el número de capítulos.</div>`;
+    c.appendChild(d);
+    return;
+  }
+
+  if(G.cView==="done"){
+    const words=G.cChaps.join(" ").split(/\s+/).filter(Boolean).length;
+    const tags=[G.prefs.genre, G.prefs.author&&`✍ ${G.prefs.author}`].filter(Boolean);
+    d.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn btn-ghost" style="padding:8px 12px;" onclick="resetCreator()">← Nueva</button>
+        ${tags.map(t=>`<span class="tag">${t}</span>`).join("")}
+        <span style="margin-left:auto;font-size:12px;color:#555;">${G.cChaps.length} cap · ${words.toLocaleString()} pal.</span>
+      </div>
+      ${G.cErr?`<div class="err-box">${G.cErr}</div>`:""}
+      <div class="book-wrap" style="margin-bottom:14px;">
+        <div class="book-toolbar">
+          <button class="rd-btn" onclick="G.rFs=Math.max(14,G.rFs-1);rerenderBookPage()">A−</button>
+          <button class="rd-btn" onclick="G.rFs=Math.min(22,G.rFs+1);rerenderBookPage()">A+</button>
+          <button class="rd-btn${G.rTheme==='dark'?' active':''}" onclick="G.rTheme='dark';rerenderBookPage()">Oscuro</button>
+          <button class="rd-btn${G.rTheme==='sepia'?' active':''}" onclick="G.rTheme='sepia';rerenderBookPage()">Sepia</button>
+          <button class="rd-btn${G.rTheme==='light'?' active':''}" onclick="G.rTheme='light';rerenderBookPage()">Claro</button>
+        </div>
+        <div class="book-page" id="book-page"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="doMoreChapter()" id="more-btn">${G.cMoreLoading?"Escribiendo...":"+ Cap. "+(G.cChaps.length+1)}</button>
+        <button class="btn btn-ghost" onclick="doSave()" style="${G.cSaved?'opacity:0.35;':''}" ${G.cSaved?'disabled':''}>
+          ${G.cSaved?"✓ Guardado":"Guardar"}
+        </button>
+        <button class="btn btn-ghost" onclick="doDownload()">Descargar</button>
+      </div>`;
+    c.appendChild(d);
+    rerenderBookPage();
+    return;
+  }
+
+  // FORM VIEW
+  const step=G.cStep;
+  const cur=STEPS[step];
+  let content="";
+
+  if(cur.type==="select"){
+    content=`<div style="display:flex;flex-wrap:wrap;gap:8px;">${cur.opts.map(o=>`<div class="pill${G.prefs[cur.key]===o?' sel':''}" onclick="creatorPick('${o.replace(/'/g,"\\'")}')"> ${o}</div>`).join("")}</div>`;
+  }
+  else if(cur.type==="author"){
+    const q=G.cAuthorQ||"";
+    const filtered=AUTHORS.filter(a=>a.toLowerCase().includes(q.toLowerCase()));
+    content=`
+      <input type="text" placeholder="Busca o escribe un autor..." value="${q}" oninput="G.cAuthorQ=this.value;renderCreator()" style="margin-bottom:10px;">
+      <div class="author-grid">
+        <div class="pill" onclick="creatorPick('')">Sin estilo específico →</div>
+        ${filtered.map(a=>`<div class="pill" onclick="creatorPickAuthor('${a.replace(/'/g,"\\'")}')"> ${a}</div>`).join("")}
+        ${q&&!AUTHORS.find(a=>a.toLowerCase()===q.toLowerCase())?`<div class="pill" style="border-style:dashed;" onclick="creatorPickAuthor('${q.replace(/'/g,"\\'")}')">+ Usar "${q}"</div>`:""}
+      </div>`;
+  }
+  else if(cur.type==="chapters"){
+    const opts=Array.from({length:40},(_,i)=>i+1).map(n=>`<option value="${n}"${n===G.cChapters?" selected":""}>${n} capítulo${n>1?"s":""}${n<=3?" — recomendado":n>=15?" — novela larga":""}</option>`).join("");
+    content=`
+      <div class="hint-box">Cada capítulo tiene mínimo 2500 palabras. Puedes añadir más después de generar.</div>
+      <p style="font-size:13px;color:#888;margin-bottom:10px;">Elige cuántos capítulos generar ahora:</p>
+      <select onchange="G.cChapters=parseInt(this.value);document.getElementById('gen-btn-txt').textContent='Generar '+G.cChapters+' capítulo'+(G.cChapters>1?'s':'')+ ' →';">${opts}</select>
+      <button class="btn btn-primary btn-full" style="margin-top:14px;font-size:15px;padding:13px;" onclick="creatorPick(String(G.cChapters))">
+        <span id="gen-btn-txt">Generar ${G.cChapters} capítulo${G.cChapters>1?"s":""} →</span>
+      </button>
+      <p style="font-size:12px;color:#444;margin-top:8px;text-align:center;">Recomendado para empezar: 2 o 3 capítulos</p>`;
+  }
+  else if(cur.type==="text"){
+    content=`
+      <textarea rows="3" placeholder="${cur.ph}" oninput="G.prefs['${cur.key}']=this.value">${G.prefs[cur.key]||""}</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-primary" onclick="creatorNext()">Siguiente →</button>
+        <button class="btn btn-ghost" onclick="creatorPick('')">Omitir</button>
+      </div>`;
+  }
+  else if(cur.type==="extra"){
+    content=`
+      <div class="hint-box"><strong style="color:#888;">Ideas:</strong> nombre del protagonista · lugar y época · conflicto central · personajes secundarios · una escena que imaginas · el final deseado</div>
+      <textarea rows="5" placeholder="${cur.ph}" oninput="G.prefs['${cur.key}']=this.value">${G.prefs[cur.key]||""}</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-primary" onclick="creatorNext()">Siguiente →</button>
+        <button class="btn btn-ghost" onclick="creatorPick('')">Omitir</button>
+      </div>`;
+  }
+
+  d.innerHTML=`
+    <div class="step-bar">${STEPS.map((_,i)=>`<div class="step-dot${i<=step?' done':''}"></div>`).join("")}</div>
+    <p class="step-label">Paso ${step+1} de ${STEPS.length}</p>
+    <p class="step-title">${cur.label}</p>
+    ${content}
+    ${step>0?`<button class="btn btn-ghost" style="margin-top:14px;" onclick="G.cStep--;renderCreator()">← Anterior</button>`:""}`;
+
+  c.appendChild(d);
+}
+
+// KEY: these functions write directly to G.prefs — no closures
+function creatorPick(value){
+  G.prefs[STEPS[G.cStep].key]=value;
+  if(G.cStep<STEPS.length-1){ G.cStep++; renderCreator(); }
+  else doGenerate();
+}
+function creatorPickAuthor(a){ creatorPick(a); }
+function creatorNext(){
+  // for text/extra — value already set via oninput
+  const val=G.prefs[STEPS[G.cStep].key]||"";
+  creatorPick(val);
+}
+function resetCreator(){
+  G.prefs={}; G.cStep=0; G.cView="form"; G.cChaps=[];
+  G.cSaved=false; G.cErr=""; G.cAuthorQ=""; G.cChapters=3;
+  renderCreator();
+}
+
+async function doGenerate(){
+  G.cView="generating"; G.cProgress=2; G.cErr="";
+  renderCreator();
+
+  // Animate progress without re-rendering
+  if(G.cProgressTimer) clearInterval(G.cProgressTimer);
+  G.cProgressTimer=setInterval(()=>{
+    if(G.cProgress>=91){ clearInterval(G.cProgressTimer); return; }
+    const inc=G.cProgress<25?1.8:G.cProgress<50?1.2:G.cProgress<72?0.7:G.cProgress<85?0.35:0.12;
+    G.cProgress=Math.min(91,Math.round(G.cProgress+inc));
+    const pf=document.getElementById("prog-fill");
+    const pt=document.getElementById("pct-txt");
+    const ph=document.getElementById("phase-txt");
+    if(pf) pf.style.width=G.cProgress+"%";
+    if(pt) pt.textContent=G.cProgress+"%";
+    if(ph){ const idx=Math.min(Math.floor(G.cProgress/12),PHASES.length-1); ph.textContent=PHASES[idx]; }
+  },600);
+
+  const p=G.prefs;
+  const numChaps=parseInt(p.chapters)||G.cChapters||1;
+  const authorLine=p.author?`\nEmula el estilo de ${p.author}: ritmo, vocabulario, técnicas narrativas. No lo menciones.`:"";
+  const extraLine=p.extra?`\n\nDATOS DEL USUARIO (máxima prioridad):\n${p.extra}`:"";
+  const chapInstr=Array.from({length:numChaps},(_,i)=>
+    i===0
+      ?`CAPÍTULO 1: Mínimo 2500 palabras. Establece mundo, personajes y conflicto. Tensión desde la primera oración.`
+      :`CAPÍTULO ${i+1}: Mínimo 2500 palabras. Desarrolla trama, añade complicaciones. Termina en punto de quiebre.`
+  ).join("\n");
+
+  const prompt=`Escribe una novela:
+GÉNERO: ${p.genre||"Fantasía"} | VOZ: ${p.narrative||"Tercera persona omnisciente"} | TONO: ${p.tone||"Épico y grandioso"}${authorLine}
+REFERENCIAS: ${p.refs||"las apropiadas para el género"}${extraLine}
+
+ESTRUCTURA (sin asteriscos ni markdown):
+Línea 1: Título
+Línea en blanco
+Sinopsis (3 oraciones)
+Línea en blanco
+${chapInstr}
+
+Separa cada capítulo SOLO con esta línea: ---CAPITULO---
+OBLIGATORIO: Mínimo 2500 palabras por capítulo. Prosa literaria rica y detallada.`;
+
+  const sys=`Novelista literario de primer nivel.${p.author?` Imitas el estilo de ${p.author}.`:""} Español elegante. Capítulos largos, descriptivos y cinematográficos.`;
+
+  try{
+    const txt=await api([{role:"user",content:prompt}],sys,8000);
+    clearInterval(G.cProgressTimer);
+    G.cProgress=100;
+    const parts=txt.split("---CAPITULO---").map(s=>s.trim()).filter(Boolean);
+    G.cChaps=parts.length>1?parts:[txt];
+    setTimeout(()=>{ G.cView="done"; renderCreator(); },700);
+  }catch(e){
+    clearInterval(G.cProgressTimer);
+    G.cErr=e.message;
+    G.cView="form";
+    renderCreator();
+  }
+}
+
+async function doMoreChapter(){
+  G.cMoreLoading=true; G.cErr=""; renderCreator();
+  const nextN=G.cChaps.length+1;
+  const p=G.prefs;
+  try{
+    const txt=await api([{role:"user",content:`Novela (últimos 2 capítulos):\n\n${G.cChaps.slice(-2).join("\n\n---\n\n")}\n\nEscribe Capítulo ${nextN}. Mínimo 2500 palabras. ${p.author?`Estilo de ${p.author}.`:""} Mismo tono. Empieza con "Capítulo ${nextN}".`}],
+    `Novelista.${p.author?` Estilo de ${p.author}.`:""} Capítulos largos en español.`,8000);
+    G.cChaps=[...G.cChaps,txt];
+  }catch(e){ G.cErr=e.message; }
+  G.cMoreLoading=false; renderCreator();
+}
+
+function rerenderBookPage(){
+  const page=document.getElementById("book-page");
+  if(!page) return;
+  const themes={
+    dark:{bg:"#111",text:"#ccc",title:"#f0f0f0",syn:"#777",ch:"#f0f0f0"},
+    sepia:{bg:"#f2e8d0",text:"#4a3828",title:"#2c1e0e",syn:"#7a5a40",ch:"#2c1e0e"},
+    light:{bg:"#fafafa",text:"#333",title:"#111",syn:"#888",ch:"#111"},
+  };
+  const t=themes[G.rTheme]||themes.dark;
+  page.style.background=t.bg;
+  page.style.fontSize=G.rFs+"px";
+  page.innerHTML="";
+
+  G.cChaps.forEach((ch,ci)=>{
+    if(ci>0){const dv=document.createElement("div");dv.className="ch-div";dv.textContent="· · ·";page.appendChild(dv);}
+    ch.split("\n").forEach((line,li)=>{
+      if(!line.trim()){const s=document.createElement("div");s.className="book-sp";page.appendChild(s);return;}
+      const isT=li===0&&ci===0&&line.length<100;
+      const isSyn=ci===0&&li>=1&&li<=4&&line.length<300&&!line.startsWith("Capítulo");
+      const isCH=line.startsWith("Capítulo");
+      const el=document.createElement("p");
+      el.textContent=line;
+      if(isT){el.className="book-title";el.style.color=t.title;el.style.fontSize=(G.rFs+6)+"px";}
+      else if(isSyn){el.className="book-syn";el.style.color=t.syn;el.style.fontSize=(G.rFs-1)+"px";}
+      else if(isCH){el.className="book-ch";el.style.color=t.ch;el.style.fontSize=(G.rFs+2)+"px";}
+      else{el.className="book-p";el.style.color=t.text;el.style.textIndent=li>4?"2em":"0";}
+      page.appendChild(el);
+    });
+  });
+}
+
+function doSave(){
+  const lines=G.cChaps[0].split("\n").filter(l=>l.trim());
+  G.library=[{
+    id:Math.random().toString(36).slice(2),
+    title:lines[0]||"Historia sin título",
+    synopsis:lines.slice(1,5).join(" "),
+    genre:G.prefs.genre||"",
+    authorStyle:G.prefs.author||null,
+    chapters:G.cChaps,
+    savedAt:Date.now()
+  },...G.library];
+  G.cSaved=true;
+  updateLibTab();
+  renderCreator();
+}
+function doDownload(){
+  const b=new Blob([G.cChaps.join("\n\n---\n\n")],{type:"text/plain"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="historia.txt";a.click();
+}
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+function renderLibrary(){
+  const c=document.getElementById("tab-library");
+  c.innerHTML="";
+  const d=document.createElement("div");
+  d.className="fade";
+  if(!G.library.length){
+    d.innerHTML=`<div style="text-align:center;padding:48px 0;">
+      <p style="font-size:32px;margin-bottom:12px;">📚</p>
+      <p style="font-size:15px;font-weight:500;margin-bottom:4px;">Tu biblioteca está vacía</p>
+      <p style="font-size:13px;color:#555;">Crea una historia y guárdala aquí.</p>
+    </div>`;
+  } else {
+    d.innerHTML=`
+      <p style="font-size:15px;font-weight:500;margin-bottom:4px;">Mi biblioteca</p>
+      <p style="font-size:12px;color:#555;margin-bottom:16px;">${G.library.length} historia${G.library.length!==1?"s":""} guardada${G.library.length!==1?"s":""}</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${G.library.map((book,i)=>`
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span class="tag">${book.genre||""}</span>
+              <span style="font-size:11px;color:#555;">${book.chapters?.length||1} cap.</span>
+            </div>
+            <p style="font-size:15px;font-weight:500;margin-bottom:2px;">${book.title}</p>
+            ${book.authorStyle?`<p style="font-size:12px;color:#555;margin-bottom:6px;">Estilo: ${book.authorStyle}</p>`:""}
+            <p style="font-size:13px;color:#888;line-height:1.5;margin-bottom:12px;">${(book.synopsis||"").slice(0,110)}...</p>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" style="flex:1;" onclick="openReader(${i})">Leer</button>
+              <button class="btn btn-ghost" onclick="G.library.splice(${i},1);updateLibTab();renderLibrary()">🗑</button>
+            </div>
+          </div>`).join("")}
+      </div>`;
+  }
+  c.appendChild(d);
+}
+
+function openReader(i){
+  const book=G.library[i];
+  G.rBook=book;
+  renderReader();
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  ["discover","create","library"].forEach(t=>document.getElementById("tab-"+t).style.display="none");
+  document.getElementById("tab-reader").style.display="block";
+}
+
+function renderReader(){
+  const c=document.getElementById("tab-reader");
+  c.innerHTML="";
+  const book=G.rBook;
+  const chapters=book.chapters||[];
+  const words=chapters.join(" ").split(/\s+/).filter(Boolean).length;
+  const d=document.createElement("div");
+  d.className="fade";
+  d.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;">
+      <button class="btn btn-ghost" style="padding:8px 12px;" onclick="closeReader()">← Salir</button>
+      <div style="text-align:right;min-width:0;">
+        <p style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${book.title}</p>
+        <p style="font-size:11px;color:#555;">${Math.ceil(words/220)} min · ${words.toLocaleString()} palabras</p>
+      </div>
+    </div>
+    <div class="book-wrap">
+      <div class="book-toolbar">
+        <button class="rd-btn" onclick="G.rFs=Math.max(14,G.rFs-1);rerenderReaderPage()">A−</button>
+        <button class="rd-btn" onclick="G.rFs=Math.min(22,G.rFs+1);rerenderReaderPage()">A+</button>
+        <button class="rd-btn${G.rTheme==='dark'?' active':''}" onclick="G.rTheme='dark';rerenderReaderPage()">Oscuro</button>
+        <button class="rd-btn${G.rTheme==='sepia'?' active':''}" onclick="G.rTheme='sepia';rerenderReaderPage()">Sepia</button>
+        <button class="rd-btn${G.rTheme==='light'?' active':''}" onclick="G.rTheme='light';rerenderReaderPage()">Claro</button>
+      </div>
+      <div class="book-page" id="reader-page" onscroll="updateReaderProg(this)"></div>
+    </div>
+    <div class="prog-wrap" style="margin-top:0;border-radius:0 0 14px 14px;overflow:hidden;">
+      <div class="prog-fill" id="reader-prog" style="width:0%;"></div>
+    </div>
+    <p id="reader-pct" style="font-size:11px;color:#555;text-align:right;margin-top:4px;">0%</p>`;
+  c.appendChild(d);
+  rerenderReaderPage();
+}
+
+function rerenderReaderPage(){
+  const page=document.getElementById("reader-page");
+  if(!page) return;
+  const book=G.rBook;
+  const chapters=book.chapters||[];
+  const themes={dark:{bg:"#111",text:"#ccc",title:"#f0f0f0",syn:"#777",ch:"#f0f0f0"},sepia:{bg:"#f2e8d0",text:"#4a3828",title:"#2c1e0e",syn:"#7a5a40",ch:"#2c1e0e"},light:{bg:"#fafafa",text:"#333",title:"#111",syn:"#888",ch:"#111"}};
+  const t=themes[G.rTheme]||themes.dark;
+  page.style.background=t.bg;
+  page.style.fontSize=G.rFs+"px";
+  page.innerHTML="";
+  chapters.forEach((ch,ci)=>{
+    if(ci>0){const dv=document.createElement("div");dv.className="ch-div";dv.textContent="· · ·";page.appendChild(dv);}
+    ch.split("\n").forEach((line,li)=>{
+      if(!line.trim()){const s=document.createElement("div");s.className="book-sp";page.appendChild(s);return;}
+      const isT=li===0&&ci===0&&line.length<100,isSyn=ci===0&&li>=1&&li<=4&&line.length<300&&!line.startsWith("Capítulo"),isCH=line.startsWith("Capítulo");
+      const el=document.createElement("p");
+      el.textContent=line;
+      el.style.fontFamily="'Playfair Display',serif";
+      el.style.lineHeight=isT||isCH?"1.2":"1.9";
+      el.style.fontSize=(isT?G.rFs+6:isCH?G.rFs+2:G.rFs)+"px";
+      el.style.fontWeight=isT||isCH?"600":"400";
+      el.style.fontStyle=isSyn?"italic":"normal";
+      el.style.color=isT?t.title:isSyn?t.syn:isCH?t.ch:t.text;
+      el.style.margin=isT||isCH?"0 0 14px":"0 0 2px";
+      el.style.textAlign=isT||isCH?"center":"justify";
+      el.style.textIndent=!isT&&!isSyn&&!isCH&&li>4?"1.8em":"0";
+      page.appendChild(el);
+    });
+  });
+}
+
+function updateReaderProg(el){
+  const pct=Math.round(el.scrollTop/Math.max(1,el.scrollHeight-el.clientHeight)*100);
+  const pf=document.getElementById("reader-prog"),pp=document.getElementById("reader-pct");
+  if(pf)pf.style.width=pct+"%";
+  if(pp)pp.textContent=pct+"%";
+}
+
+function closeReader(){
+  G.rBook=null;
+  document.getElementById("tab-reader").style.display="none";
+  // Go back to library
+  document.querySelectorAll(".nav-item").forEach((n,i)=>{n.classList.remove("active");if(i===2)n.classList.add("active");});
+  ["discover","create","reader"].forEach(t=>document.getElementById("tab-"+t).style.display="none");
+  document.getElementById("tab-library").style.display="block";
+  renderLibrary();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderDiscover();
+</script>
+</body>
+</html>
